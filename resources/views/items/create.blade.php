@@ -18,7 +18,7 @@
 
                         <div>
                             <x-input-label for="type" :value="__('Type')" />
-                            <x-select id="type" name="type"  class="mt-1 block w-full">
+                            <x-select id="type" name="type"  class="mt-1 block w-full" tabindex="0">
                                 @foreach($itemTypes as $type)
                                     <option value="{{ $type->value }}" {{old('type') === $type->value ? 'selected' : '
 '}}>{{ $type->name }}</option>
@@ -29,7 +29,7 @@
 
                         <div>
                             <x-input-label for="title" :value="__('Title')" />
-                            <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" autocomplete="title" value="{{ old('title') }}"/>
+                            <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" autocomplete="title" value="{{ old('title') }}" autofocus/>
                             <x-input-error :messages="$errors->get('title')" class="mt-2" />
                         </div>
 
@@ -39,19 +39,40 @@
                             <x-input-error :messages="$errors->get('username')" class="mt-2" />
                         </div>
 
-                        <div>
+                        <div x-data="createForm()" @set-item-password.window="password=$event.detail">
                             <div class="flex justify-between">
                                 <x-input-label for="password" :value="__('Password')" />
-                                <x-secondary-button
-                                    title="Password Generator"
-                                    x-data=""
-                                    x-on:click.prevent="$dispatch('open-modal', 'password-generate')"
-                                >
-                                    <i class="fas fa-sync"></i>
-                                </x-secondary-button>
+                                <div class="flex justify-items-end space-x-2">
+                                    <x-secondary-button @click="show = (show === 'password' ? 'text' : 'password')" tabindex="-1">
+                                        <i :class="show === 'password' ? 'far fa-eye' : 'far fa-eye-slash'"></i>
+                                    </x-secondary-button>
+
+                                    <x-secondary-button
+                                        title="Password Generator"
+                                        x-data=""
+                                        x-on:click.prevent="$dispatch('open-modal', 'password-generate')"
+                                        tabindex="-1"
+                                    >
+                                        <i class="fas fa-sync"></i>
+                                    </x-secondary-button>
+
+                                    <x-secondary-button title="Check if password has been exposed" @click="leakPasswordChecker()" tabindex="-1">
+                                        <template x-if="leaked">
+                                            <i class="fas fa-times text-red-600"></i>
+                                        </template>
+                                        <template x-if="leaked===false">
+                                            <i class="fas fa-check-double text-green-600"></i>
+                                        </template>
+                                        <template x-if="leaked===null">
+                                            <i class="fas fa-check"></i>
+                                        </template>
+
+                                    </x-secondary-button>
+                                </div>
+
                             </div>
 
-                            <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" autocomplete="password" value="{{ old('password') }}"/>
+                            <x-text-input id="password" name="password" x-bind:type="show" class="mt-1 block w-full" autocomplete="password" value="{{ old('password') }}" x-model="password"/>
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
@@ -74,7 +95,6 @@
 
                         <div class="flex items-center gap-4">
                             <x-primary-button>{{ __('Save') }}</x-primary-button>
-
                         </div>
                     </form>
                     @include('items.partials.password-generate')
@@ -83,3 +103,27 @@
         </div>
     </div>
 </x-app-layout>
+
+<script type="text/javascript">
+    function createForm(){
+        return {
+            password:'',
+            show: 'password',
+            leaked: null,
+            leakPasswordChecker(){
+                axios.post("{{ route('items.leaked-password-check') }}", {
+                    password: this.password,
+                    _token: "{{ csrf_token() }}"
+                })
+                    .then((res) => {
+                        this.leaked = res.data?.leaked;
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                })
+            }
+
+        }
+
+    }
+</script>

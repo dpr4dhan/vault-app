@@ -17,6 +17,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('/items', ItemController::class);
+    Route::post('/items/password-generator', [ItemController::class, 'passwordGenerator'])->name('items.password-generator');
+    Route::post('/items/leaked-password-check', [ItemController::class, 'leakPasswordCheck'])->name('items.leaked-password-check');
 });
 
 require __DIR__.'/auth.php';

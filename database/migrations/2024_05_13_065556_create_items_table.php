@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('username')->nullable();
             $table->string('password')->nullable();
             $table->boolean('favourite')->default(false);
+            $table->string('url')->nullable();
             $table->longText('note')->nullable();
             $table->string('card_holder_name')->nullable();
             $table->string('card_number')->nullable();
