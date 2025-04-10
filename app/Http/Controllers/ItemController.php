@@ -56,7 +56,7 @@ class ItemController extends Controller
      */
     public function show(Item $item)
     {
-        //
+
     }
 
     /**
@@ -64,7 +64,8 @@ class ItemController extends Controller
      */
     public function edit(Item $item)
     {
-        //
+        $itemTypes = ItemType::cases();
+        return view('items.edit', compact('itemTypes', 'item'));
     }
 
     /**

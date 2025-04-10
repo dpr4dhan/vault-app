@@ -12,15 +12,15 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form method="post" action="{{ route('items.store') }}" class="mt-6 space-y-6">
+                <div class="p-6 text-gray-900 dark:text-gray-100" x-data="{disabled : true}">
+                    <form method="post" action="{{ route('items.update', $item->uuid) }}" class="mt-6 space-y-6" >
                         @csrf
-
+                        @method('patch')
                         <div>
                             <x-input-label for="type" :value="__('Type')" />
-                            <x-select id="type" name="type"  class="mt-1 block w-full" tabindex="0">
+                            <x-select id="type" name="type"  class="mt-1 block w-full" tabindex="0" x-bind:disabled="disabled">
                                 @foreach($itemTypes as $type)
-                                    <option value="{{ $type->value }}" {{old('type') === $type->value ? 'selected' : '
+                                    <option value="{{ $type->value }}" {{old('type', $item->type) === $type->value ? 'selected' : '
 '}}>{{ $type->name }}</option>
                                 @endforeach
                             </x-select>
@@ -29,13 +29,13 @@
 
                         <div>
                             <x-input-label for="title" :value="__('Title')" />
-                            <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" autocomplete="title" value="{{ old('title') }}" autofocus/>
+                            <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" autocomplete="title" value="{{ old('title', $item->title) }}" x-bind:disabled="disabled" x-ref="title"/>
                             <x-input-error :messages="$errors->get('title')" class="mt-2" />
                         </div>
 
                         <div>
                             <x-input-label for="username" :value="__('Username')" />
-                            <x-text-input id="username" name="username" type="text" class="mt-1 block w-full" autocomplete="username" value="{{ old('username') }}"/>
+                            <x-text-input id="username" name="username" type="text" class="mt-1 block w-full" autocomplete="username" value="{{ old('username', $item->username) }}" x-bind:disabled="disabled"/>
                             <x-input-error :messages="$errors->get('username')" class="mt-2" />
                         </div>
 
@@ -53,7 +53,7 @@
                                                             copyToClipboard(password);
                                                             $dispatch('notice', {type: 'success', text: 'Copied successfully !'})
                                                         "
-                                    >
+                                                       >
                                         <i class="far fa-copy"></i>
                                     </x-secondary-button>
 
@@ -82,29 +82,30 @@
 
                             </div>
 
-                            <x-text-input id="password" name="password" x-bind:type="show" class="mt-1 block w-full" autocomplete="password" value="{{ old('password') }}" x-model="password"/>
+                            <x-text-input id="password" name="password" x-bind:type="show" class="mt-1 block w-full" autocomplete="password" value="{{ old('password', $item->password) }}" x-model="password" x-bind:disabled="disabled"/>
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
                         <div>
                             <x-input-label for="url" :value="__('Url')" />
-                            <x-text-input id="url" name="url" type="text" class="mt-1 block w-full" autocomplete="url" />
-                            <x-input-error :messages="$errors->get('url')" class="mt-2" value="{{ old('url') }}"/>
+                            <x-text-input id="url" name="url" type="text" class="mt-1 block w-full" autocomplete="url" value="{{ old('url', $item->url) }}" x-bind:disabled="disabled"/>
+                            <x-input-error :messages="$errors->get('url')" class="mt-2" />
                         </div>
 
                         <div class="flex justify-between">
                             <x-input-label for="favourite" :value="__('Favourite')" />
-                            <input id="favourite" name="favourite" type="checkbox" class="mt-1 block rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" {{ old('favourite') ? "checked" : '' }}>
+                            <input id="favourite" name="favourite" type="checkbox" class="mt-1 block rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" {{ old('favourite', $item->favourite) ? "checked" : '' }} x-bind:x-bind:disabled="disabled">
                         </div>
 
                         <div>
                             <x-input-label for="note" :value="__('Note')" />
-                            <x-text-area id="note" name="note" rows="3" class="mt-1 block w-full" >{{ old('note') }}</x-text-area>
+                            <x-text-area id="note" name="note" rows="3" class="mt-1 block w-full" x-bind:disabled="disabled">{{ old('note', $item->note) }}</x-text-area>
                             <x-input-error :messages="$errors->get('note')" class="mt-2" />
                         </div>
 
                         <div class="flex items-center gap-4">
-                            <x-primary-button>{{ __('Save') }}</x-primary-button>
+                            <x-primary-button x-bind:type="disabled ? 'button' : 'submit'" @click="disabled = !disabled;" >{{ __('Edit') }}</x-primary-button>
+                            <x-danger-button type="button" >{{ __('Delete') }}</x-danger-button>
                         </div>
                     </form>
                     @include('items.partials.password-generate')
@@ -117,9 +118,10 @@
 <script type="text/javascript">
     function createForm(){
         return {
-            password:'',
+            password:"{{ $item->password }}",
             show: 'password',
             leaked: null,
+
             leakPasswordChecker(){
                 axios.post("{{ route('items.leaked-password-check') }}", {
                     password: this.password,

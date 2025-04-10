@@ -28,4 +28,9 @@ class Item extends Model
             $model->uuid = Str::uuid()->toString();
         });
     }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 }

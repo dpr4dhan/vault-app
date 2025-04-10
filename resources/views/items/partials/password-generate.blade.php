@@ -18,6 +18,14 @@
                 <x-secondary-button @click="show = (show === 'password' ? 'text' : 'password')">
                     <i :class="show === 'password' ? 'far fa-eye' : 'far fa-eye-slash'"></i>
                 </x-secondary-button>
+                <x-secondary-button tabindex="-1"
+                                    title="Copy password"
+                                    @click="copyToClipboard(modalPassword);
+                                                $dispatch('notice', {type: 'success', text: 'Copied successfully !'})
+                                            "
+                >
+                    <i class="far fa-copy"></i>
+                </x-secondary-button>
             </div>
 
 
@@ -101,6 +109,10 @@
                     // handle error
                     console.log(error);
                 })
+            },
+
+            copyToClipboard(text){
+                navigator.clipboard.writeText(text);
             }
         }
     }
